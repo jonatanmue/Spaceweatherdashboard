@@ -29,7 +29,7 @@ def load_solar_indices():
             pl.nth(0)
             .str.slice(139, 8)
             .str.strip_chars()
-            .alias("F10.7")
+            .alias("F10.7adj")
             .cast(pl.Decimal)
             .replace(-1, None)
         ),
@@ -37,7 +37,7 @@ def load_solar_indices():
             pl.nth(0)
             .str.slice(135, 3)
             .str.strip_chars()
-            .alias("Anzahl Sonnenflecken")
+            .alias("SN")
             .cast(pl.Int32)
             .replace(-1, None)
         ),
@@ -106,6 +106,8 @@ def load_solar_indices():
             .replace(-1, None)
         ),
     )
+    # return pl.read_parquet("http://dw-000169l.intra.dlr.de:9000/space-weather/solar_indices_gfz.parquet")
+    #Nur im Dlr nutzbar!
 
 
 solar_indices = load_solar_indices()
@@ -113,8 +115,8 @@ solar_indices = load_solar_indices()
 Ap = solar_indices["Ap"].drop_nulls().item(-1)
 Ap_chg = Ap - solar_indices["Ap"].drop_nulls().item(-2)
 
-F107 = solar_indices["F10.7"].drop_nulls().item(-1)
-F107_chg = F107 - solar_indices["F10.7"].drop_nulls().item(-2)
+F107 = solar_indices["F10.7adj"].drop_nulls().item(-1)
+F107_chg = F107 - solar_indices["F10.7adj"].drop_nulls().item(-2)
 
 Kp_indices = solar_indices.select(
     pl.concat_list([f"Kp{i}" for i in range(1, 9)]).alias("Kp").flatten(),
@@ -122,12 +124,18 @@ Kp_indices = solar_indices.select(
 ).drop_nulls()
 Kp = Kp_indices["Kp"].item(-1)
 
-col1, col2 = st.columns(2)
-col1.metric("Ap-Index:", Ap, Ap_chg)
+
+col1, col2=st.columns(2)
+col1.metric("Ap-Index heute: ", float(Ap), float(Ap_chg))
 col2.metric("F10.7-Wert:", float(F107), float(F107_chg))
 
-data = pl.DataFrame({"a": ["A"], "b": [float(Kp)]})
+col3, col4 = st.columns(2)
+with col3.expander("Was ist der Ap-Index?"):
+    st.write("Der Ap-Index liefert einen täglichen Durchschnittswert für die geomagnetische Aktivität. Der Durchschnitt aus 8 täglichen a-Werten ergibt den Ap-Index eines bestimmten Tages. Quelle: https://www.spaceweatherlive.com/de/hilfe/was-ist-der-ap-index.html")
+with col4.expander("Was ist der F10.7-Wert?"):
+    st.write("Der solare Radiofluss bei 10,7 cm (2800 MHz) ist ein ausgezeichneter Indikator für die Sonnenaktivität. Die F10.7-Radioemissionen entstehen hoch in der Chromosphäre und tief in der Korona der Sonnenatmosphäre. Quelle:https://www-swpc-noaa-gov.translate.goog/phenomena/f107-cm-radio-emissions?_x_tr_sl=en&_x_tr_tl=de&_x_tr_hl=de&_x_tr_pto=rq")
 
+data = pl.DataFrame({"a": ["A"], "b": [float(Kp)]})
 
 def inferno_color(value):
     normalized_value = value / 9.5
@@ -147,8 +155,13 @@ chart = (
     .properties(width=150)
     .configure_view(stroke="black", strokeWidth=2)
 )
+
+
 image_url = "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_HMIIC.jpg"
 
-col3, col4 = st.columns(2)
-col3.altair_chart(chart)
-col4.image(image_url, caption="Das aktuelle Sonnenfoto", width=330)
+col5, col6 = st.columns(2)
+col5.altair_chart(chart)
+col6.image(image_url, caption="Das aktuelle Sonnenfoto", width=330)
+col7, col8=st.columns(2)
+with col7.expander("Was ist der Kp-Index?"):
+    st.write("Der dreistündige geomagnetische Kp-Index wurde 1949 von Julius Bartels eingeführt, um die solare Teilchenstrahlung über ihre magnetischen Effekte zu messen. Heute ist Kp ein wichtiges Maß für den Energieeintrag aus dem Sonnenwind in das System Erde und wird in Echtzeit für viele Weltraumwetterdienste genutzt. Quelle:https://kp.gfz-potsdam.de/")
