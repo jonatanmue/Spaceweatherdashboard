@@ -2,16 +2,10 @@ import streamlit as st
 import polars as pl
 import requests
 import altair as alt
-import pandas as pd
-import numpy as np
 import matplotlib as mp
 import matplotlib.pyplot as plt
-import geopandas as gpd
-import plotly.express as px
-import folium
-from streamlit_folium import st_folium
 
-st.markdown("# Startseite")
+st.markdown("# Das heutige Weltraumwetter")
 
 
 @st.cache_data
@@ -110,8 +104,6 @@ def load_solar_indices():
             .replace(-1, None)
         ),
     )
-    # return pl.read_parquet("http://dw-000169l.intra.dlr.de:9000/space-weather/solar_indices_gfz.parquet")
-    # Nur im Dlr nutzbar!
 
 
 solar_indices = load_solar_indices()
@@ -136,13 +128,19 @@ col2.metric("F10.7-Wert:", float(F107), float(F107_chg))
 col3, col4 = st.columns(2)
 with col3.expander("Was ist der Ap-Index?"):
     st.write(
-        "Der Ap-Index liefert einen täglichen Durchschnittswert für die geomagnetische Aktivität. Der Durchschnitt aus 8 täglichen a-Werten ergibt den Ap-Index eines bestimmten Tages. Quelle: https://www.spaceweatherlive.com/de/hilfe/was-ist-der-ap-index.html"
+        "Der Ap-Index liefert einen täglichen Durchschnittswert für die geomagnetische Aktivität. Der Durchschnitt aus 8 täglichen a-Werten ergibt den Ap-Index eines bestimmten Tages."
     )
-with col4.expander("Was ist der F10.7-Wert?"):
     st.write(
-        "Der solare Radiofluss bei 10,7 cm (2800 MHz) ist ein ausgezeichneter Indikator für die Sonnenaktivität. Die F10.7-Radioemissionen entstehen hoch in der Chromosphäre und tief in der Korona der Sonnenatmosphäre. Quelle:https://www-swpc-noaa-gov.translate.goog/phenomena/f107-cm-radio-emissions?_x_tr_sl=en&_x_tr_tl=de&_x_tr_hl=de&_x_tr_pto=rq"
+        "Quelle: https://www.spaceweatherlive.com/de/hilfe/was-ist-der-ap-index.html"
     )
 
+with col4.expander("Was ist der F10.7-Wert?"):
+    st.write(
+        "Der solare Radiofluss bei 10,7 cm (2800 MHz) ist ein ausgezeichneter Indikator für die Sonnenaktivität. Die F10.7-Radioemissionen entstehen hoch in der Chromosphäre und tief in der Korona der Sonnenatmosphäre."
+    )
+    st.write(
+        "Quelle:https://www-swpc-noaa-gov.translate.goog/phenomena/f107-cm-radio-emissions?_x_tr_sl=en&_x_tr_tl=de&_x_tr_hl=de&_x_tr_pto=rq"
+    )
 data = pl.DataFrame({"a": ["A"], "b": [float(Kp)]})
 
 
@@ -174,13 +172,14 @@ col6.image(image_url, caption="Das aktuelle Sonnenfoto", width=330)
 col7, col8 = st.columns(2)
 with col7.expander("Was ist der Kp-Index?"):
     st.write(
-        "Der dreistündige geomagnetische Kp-Index wurde 1949 von Julius Bartels eingeführt, um die solare Teilchenstrahlung über ihre magnetischen Effekte zu messen. Heute ist Kp ein wichtiges Maß für den Energieeintrag aus dem Sonnenwind in das System Erde und wird in Echtzeit für viele Weltraumwetterdienste genutzt. Quelle:https://kp.gfz-potsdam.de/"
+        "Der dreistündige geomagnetische Kp-Index wurde 1949 von Julius Bartels eingeführt, um die solare Teilchenstrahlung über ihre magnetischen Effekte zu messen. Heute ist Kp ein wichtiges Maß für den Energieeintrag aus dem Sonnenwind in das System Erde und wird in Echtzeit für viele Weltraumwetterdienste genutzt."
     )
-
-m = folium.Map(location=[0, 0], zoom_start=1.5)
-st.title("Globaler TEC-Index")
-st_folium(m, width=700)
-
-# def TEC_Index():
-#     Antwort=requests.get("https://esc-sso.dlr.de/Total_Electron_Content/TEC_Near_Real-Time/i103b/latest/DLR_GNSS_GCG_L4_VTEC-NTCM-SCM_NC_GLOBAL_latest_D.json")
-#     return
+    st.write("Quelle:https://kp.gfz-potsdam.de/")
+image_url = "https://impc.dlr.de/SWE/Total_Electron_Content/TEC_Near_Real-Time/DLR_GNSS_GCG_L4_VTEC-NTCM-SCM_NC_GLOBAL/v2.0.0/latest/DLR_GNSS_GCG_L4_VTEC-NTCM-SCM_NC_GLOBAL_latest_I.png"
+st.image(image_url)
+st.write("Datenquellen:")
+st.write(
+    "https://impc.dlr.de/products/total-electron-content/near-real-time-tec/near-real-time-tec-maps-global"
+)
+st.write("https://kp.gfz-potsdam.de/")
+st.write("https://sdo.gsfc.nasa.gov/data/")
