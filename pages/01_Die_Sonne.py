@@ -2,20 +2,12 @@ import streamlit as st
 import polars as pl
 import requests
 import altair as alt
-import pandas as pd
-import numpy as np
-import matplotlib as mp
-import matplotlib.pyplot as plt
 import datetime as dt
-import csv
+
+st.markdown("# Die Sonne")
 
 
-current_date = dt.datetime.now()
-aktuelles_datum = st.date_input(
-    "Datum auswählen", min_value=dt.datetime(1850, 1, 1), max_value=current_date
-)
-
-
+@st.cache_data
 def anzahl_der_sonnenflecken():
     response = requests.get("https://www.sidc.be/SILSO/INFO/sndtotcsv.php")
     return (
@@ -48,7 +40,7 @@ Anzahl = anzahl_der_sonnenflecken()
 
 chart = (
     alt.Chart(
-        Anzahl.rolling(index_column="date", period="27d").agg(
+        Anzahl.rolling(index_column="date", period="81d").agg(
             pl.mean("Sunspotnumber").alias("durchschnittliche Sonnenfleckenanzahl")
         )
     )
@@ -56,8 +48,12 @@ chart = (
     .encode(x="date", y="durchschnittliche Sonnenfleckenanzahl")
     .properties(title="Diagramm der Sonnenflecken")
 )
-st.altair_chart(chart, use_container_width=True)
 
+st.altair_chart(chart, use_container_width=True)
+current_date = dt.datetime.now()
+aktuelles_datum = st.date_input(
+    "Datum auswählen", min_value=dt.datetime(1850, 1, 1), max_value=current_date
+)
 line_chart = (
     alt.Chart(
         Anzahl.rolling(index_column="date", period="27d")
@@ -78,3 +74,16 @@ line_chart = (
     )
 )
 st.altair_chart(line_chart, use_container_width=True)
+with st.expander("Wie entstehen Sonnenflecken?"):
+    st.write(
+        "<p style='font-size: 12px;'>Ursache der Sonnenflecken sind Temperaturunterschiede auf der Sonnenoberfläche. Permanent wirbelt heiße Materie aus dem Inneren der Sonne an die Oberfläche. Diese so genannte Konvektion kann durch lokale Verstärkungen des Magnetfelds der Sonne behindert werden – etwas kältere Stellen auf der Sonnenoberfläche entstehen und werden als Sonnenflecken sichtbar.</p>",
+        unsafe_allow_html=True,
+    )
+    st.write(
+        "<p style='font-size: 12px;'>Quelle: https://www.dlr.de/next/desktopdefault.aspx/tabid-6554/10767_read-24305/</p>",
+        unsafe_allow_html=True,
+    )
+    st.write(
+        "<p style='font-size: 12px;'>Quelle der Sonnenfleckenanzahlen: https://www.sidc.be/SILSO/datafiles</p>",
+        unsafe_allow_html=True,
+    )
